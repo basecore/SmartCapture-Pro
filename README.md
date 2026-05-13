@@ -13,9 +13,13 @@ Created by [@basecore](https://github.com/basecore)
 
 ---
 
-## 📸 Screenshot
+## 📸 Screenshots
 
-![SmartCapture Pro Screenshot](https://raw.githubusercontent.com/basecore/SmartCapture-Pro/main/assets/screenshot.png)
+### The Application (GUI)
+![SmartCapture Pro GUI](https://raw.githubusercontent.com/basecore/SmartCapture-Pro/main/assets/screenshot_gui.png)
+
+### Capturing MS Teams Transcripts
+![Teams Capture](https://raw.githubusercontent.com/basecore/SmartCapture-Pro/main/assets/screenshot_teams2.png)
 
 ---
 
@@ -50,7 +54,7 @@ On the very first run, the script will **automatically**:
 - Download and install **Tesseract OCR** (including language packs like German and English) directly to your local AppData folder—**no admin rights required!**
 
 ## 🛠️ Usage
-1. Start the tool via terminal or command prompt or double click.
+1. Start the tool via terminal or command prompt.
 2. Define the capture area by clicking and dragging a blue box (e.g., over the MS Teams transcript).
 3. The tool will capture the area, perform OCR, and display the extracted text.
 4. Review the text, edit if necessary, and use the quick action buttons to copy or send to an AI Chat.
