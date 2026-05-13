@@ -1,0 +1,6 @@
+pytesseract>=0.3.10
+Pillow>=9.5.0
+pyautogui>=0.9.54
+keyboard>=0.13.5
+pyperclip>=1.8.2
+sv-ttk>=2.5.3
