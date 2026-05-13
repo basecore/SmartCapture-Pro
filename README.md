@@ -15,8 +15,6 @@ Created by [@basecore](https://github.com/basecore)
 
 ## 📸 Screenshot
 
-*(Add a screenshot of your running application here by saving an image as `assets/screenshot.png` and pushing it to GitHub, or replace this placeholder link)*
-
 ![SmartCapture Pro Screenshot](https://raw.githubusercontent.com/basecore/SmartCapture-Pro/main/assets/screenshot.png)
 
 ---
