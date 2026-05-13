@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-Testing_Only-yellow.svg?style=for-the-badge)](https://github.com/basecore/SmartCapture-Pro)
 [![Python Version](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python)](https://www.python.org/)
 
-> **⚠️ Disclaimer: Nur zu Testzwecken verwenden! (For testing purposes only!)**
+> **⚠️ Disclaimer: For testing purposes only! (Nur zu Testzwecken verwenden!)**
 
 SmartCapture Pro is a modern Python-based desktop application designed specifically for capturing screen regions and extracting text in real-time. It is highly optimized for capturing live transcripts from **Microsoft Teams meetings** using Optical Character Recognition (OCR).
 
