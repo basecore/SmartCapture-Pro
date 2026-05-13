@@ -16,7 +16,7 @@ Created by [@basecore](https://github.com/basecore)
 ## 📸 Screenshots
 
 ### The Application (GUI)
-![SmartCapture Pro GUI](https://raw.githubusercontent.com/basecore/SmartCapture-Pro/main/assets/screenshot_gui.png)
+![SmartCapture Pro GUI](https://raw.githubusercontent.com/basecore/SmartCapture-Pro/main/assets/screenshot_teams1.png)
 
 ### Capturing MS Teams Transcripts
 ![Teams Capture](https://raw.githubusercontent.com/basecore/SmartCapture-Pro/main/assets/screenshot_teams2.png)
