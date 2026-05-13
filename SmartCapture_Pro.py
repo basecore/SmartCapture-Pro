@@ -164,7 +164,7 @@ TRANSPARENT_KEY = "#ff00ff"
 
 # VERSION INFO
 TOOL_NAME = "SmartCapture Pro"
-TOOL_VER = "v25.0 | Stand: 13.05.2026"
+TOOL_VER = "v25.1 | Stand: 13.05.2026"
 
 # --- AI CHAT SETTINGS (change defaults here) ---
 AI_CHAT_URL = "https://chatgpt.com/"  # e.g. https://gemini.google.com or https://claude.ai
@@ -788,7 +788,7 @@ class SmartCaptureApp:
         pad.pack(fill="both", expand=True, padx=20, pady=20)
 
         tk.Label(pad, text="SmartCapture Pro", font=("Segoe UI", 16, "bold"), bg=BG_COLOR, fg=ACCENT_COLOR).pack(anchor="w")
-        tk.Label(pad, text="Version: v25.0 | Stand: 13.05.2026", font=("Segoe UI", 10), bg=BG_COLOR, fg=DARK_COLOR).pack(anchor="w", pady=(0, 15))
+        tk.Label(pad, text="Version: v25.1 | Stand: 13.05.2026", font=("Segoe UI", 10), bg=BG_COLOR, fg=DARK_COLOR).pack(anchor="w", pady=(0, 15))
 
         info_frame = tk.Frame(pad, bg="#f0f0f0", padx=15, pady=15)
         info_frame.pack(fill="x", pady=10)
@@ -1319,10 +1319,9 @@ class SmartCaptureApp:
         inc_file = self.var_ocr_file.get()
         
         files = natsorted(list(fps))
-        pw = tk.Toplevel(self.root)
-        pw.title(self.t("progress_title"))
-        lbl = tk.Label(pw, text=self.t("progress_init"), padx=20, pady=20)
-        lbl.pack()
+        self.fr_progress.pack(fill="x", pady=(5, 5))
+        self.btn_ocr.config(state="disabled")
+        self.root.update_idletasks()
         self.root.update()
         
         now_str = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')
@@ -1332,8 +1331,13 @@ class SmartCaptureApp:
         full_text += f"=== ORIGINAL OCR DATA START ===\n"
         full_text += f"Created: {now_str} | Settings: {lang_code}, {psm_arg}, {preproc_key}\n"
         
+        self.progress_bar["maximum"] = len(files)
+        self.progress_bar["value"] = 0
         for i, f in enumerate(files):
-            pw.update()
+            self.lbl_progress.config(text=f"Texterkennung... Bild {i+1} / {len(files)}")
+            self.progress_bar["value"] = i+1
+            self.root.update()
+            
             try:
                 img = Image.open(f)
                 img = self.preprocess_image(img, preproc_key)
@@ -1350,7 +1354,8 @@ class SmartCaptureApp:
                     full_text += f"{'-'*60}\n{ocr_txt}\n"
             except Exception as e: print(e)
         
-        pw.destroy()
+        self.fr_progress.pack_forget()
+        self.btn_ocr.config(state="normal")
         
         self.last_export_text = full_text
         fname = os.path.join(self.var_out_dir.get(), f"Export_{now_str}.txt")
