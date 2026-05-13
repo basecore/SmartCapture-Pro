@@ -297,6 +297,7 @@ TEXTS = {
     "lbl_about_title": {"DE": "Über dieses Tool", "EN": "About this Tool"},
     "lbl_about_text": {"DE": "Generiert mit Gemini 3.1 Pro.\nSmartCapture Pro ist ein Tool zur Automatisierung von OCR-Erfassung für Live-Transkripte.", "EN": "Generated with Gemini 3.1 Pro.\nSmartCapture Pro is a tool for automating OCR capture of live transcripts."},
     "lbl_trans_lang": {"DE": "⚠️ Abweichende Transkription? (z.B. gespr.: EN, Text: DE):", "EN": "⚠️ Transcript mismatch? (e.g. spoken: EN, transcript: DE):"},
+    "lbl_frame_pull": {"DE": " RAHMEN ZIEHEN ", "EN": " DRAW FRAME "},
 "btn_chat": {"DE": "🌐 AI Chat öffnen & Text kopieren", "EN": "🌐 Open AI Chat & Copy Text"},
     "err_no_export": {"DE": "Bitte starte zuerst die OCR-Verarbeitung und den Export!", "EN": "Please run OCR processing and export first!"},
     "msg_chat_copied": {"DE": "Text erfolgreich kopiert!\n\nBrowser wird geöffnet...\nFüge den Text einfach in das Chat-Feld ein (Strg+V).", "EN": "Text successfully copied!\n\nOpening browser...\nJust paste the text into the chat field (Ctrl+V)."},
@@ -355,7 +356,7 @@ OCR_LANGS = {
 # --- KLASSEN ---
 
 class ResizableSelectionWindow(tk.Toplevel):
-    def __init__(self, master):
+    def __init__(self, master, label_text=" RAHMEN ZIEHEN "):
         super().__init__(master)
         self.title("Selector")
         self.geometry("700x450+100+100")
@@ -367,7 +368,7 @@ class ResizableSelectionWindow(tk.Toplevel):
         self.inner_frame = tk.Frame(self, bg=TRANSPARENT_KEY)
         self.inner_frame.pack(fill="both", expand=True, padx=15, pady=15) 
         
-        lbl = tk.Label(self, text=" RAHMEN ZIEHEN ", bg=ACCENT_COLOR, fg="white", font=("Arial", 9, "bold"))
+        lbl = tk.Label(self, text=label_text, bg=ACCENT_COLOR, fg="white", font=("Arial", 9, "bold"))
         lbl.place(x=0, y=0)
         
         # Standard Sizegrip unten rechts (deutlich sichtbar lassen)
@@ -1048,7 +1049,7 @@ class SmartCaptureApp:
         if self.selector_win and self.selector_win.winfo_exists():
             self.selector_win.destroy()
             
-        self.selector_win = ResizableSelectionWindow(self.root)
+        self.selector_win = ResizableSelectionWindow(self.root, self.t("lbl_frame_pull"))
         if self.last_frame_geo:
             self.selector_win.geometry(self.last_frame_geo)
             
