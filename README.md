@@ -50,7 +50,7 @@ On the very first run, the script will **automatically**:
 - Download and install **Tesseract OCR** (including language packs like German and English) directly to your local AppData folder—**no admin rights required!**
 
 ## 🛠️ Usage
-1. Start the tool via terminal or command prompt.
+1. Start the tool via terminal or command prompt or double click.
 2. Define the capture area by clicking and dragging a blue box (e.g., over the MS Teams transcript).
 3. The tool will capture the area, perform OCR, and display the extracted text.
 4. Review the text, edit if necessary, and use the quick action buttons to copy or send to an AI Chat.
