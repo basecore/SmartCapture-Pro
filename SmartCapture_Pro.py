@@ -4,6 +4,8 @@ import os
 import time
 import datetime
 import textwrap
+import json  # ADDED: For config saving
+
 # --- NEU: TKINTER INSTALLATIONS-PRÜFUNG ---
 try:
     import tkinter as tk
@@ -29,7 +31,7 @@ import ssl
 # --- 0. HIGH DPI FIX ---
 import ctypes
 try:
-    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
 except Exception:
     try:
         ctypes.windll.user32.SetProcessDPIAware()
@@ -162,7 +164,7 @@ TRANSPARENT_KEY = "#ff00ff"
 
 # VERSION INFO
 TOOL_NAME = "SmartCapture Pro"
-TOOL_VER = "v23.3 | Stand: 13.05.2026"
+TOOL_VER = "v24.0 | Stand: 13.05.2026"
 
 # --- AI CHAT SETTINGS (change defaults here) ---
 AI_CHAT_URL = "https://chatgpt.com/"  # e.g. https://gemini.google.com or https://claude.ai
@@ -485,10 +487,52 @@ class SmartCaptureApp:
         self.setup_info_tab()
 
         
+        self.load_config()
         self.update_texts()
         self.update_session_file_count()
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     # --- SETUP TABS ---
+    def load_config(self):
+        self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+        try:
+            if os.path.exists(self.config_file):
+                with open(self.config_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if "ai_url" in data: self.var_ai_url.set(data["ai_url"])
+                    if "ai_browser" in data: self.var_ai_browser.set(data["ai_browser"])
+                    if "job" in data: self.var_job.set(data["job"])
+                    if "comp" in data: self.var_comp.set(data["comp"])
+                    if "dept" in data: self.var_dept.set(data["dept"])
+                    if "title" in data: self.var_title.set(data["title"])
+                    if "trans_lang" in data: self.var_trans_lang.set(data["trans_lang"])
+                    if "tess_path" in data: self.var_tess_path.set(data["tess_path"])
+                    if "lang" in data: self.current_lang = data["lang"]
+        except Exception as e:
+            print("Could not load config:", e)
+
+    def save_config(self):
+        try:
+            data = {
+                "ai_url": self.var_ai_url.get(),
+                "ai_browser": self.var_ai_browser.get(),
+                "job": self.var_job.get(),
+                "comp": self.var_comp.get(),
+                "dept": self.var_dept.get(),
+                "title": self.var_title.get(),
+                "trans_lang": getattr(self, "var_trans_lang", tk.StringVar()).get(),
+                "tess_path": self.var_tess_path.get(),
+                "lang": self.current_lang
+            }
+            with open(self.config_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
+        except Exception as e:
+            print("Could not save config:", e)
+
+    def on_closing(self):
+        self.save_config()
+        self.root.destroy()
+
     def setup_rec_tab(self):
         sf = ScrollableFrame(self.tab_rec, bg=BG_COLOR)
         sf.pack(fill="both", expand=True)
@@ -744,7 +788,7 @@ class SmartCaptureApp:
         pad.pack(fill="both", expand=True, padx=20, pady=20)
 
         tk.Label(pad, text="SmartCapture Pro", font=("Segoe UI", 16, "bold"), bg=BG_COLOR, fg=ACCENT_COLOR).pack(anchor="w")
-        tk.Label(pad, text="Version: v23.3 | Stand: 13.05.2026", font=("Segoe UI", 10), bg=BG_COLOR, fg=DARK_COLOR).pack(anchor="w", pady=(0, 15))
+        tk.Label(pad, text="Version: v24.0 | Stand: 13.05.2026", font=("Segoe UI", 10), bg=BG_COLOR, fg=DARK_COLOR).pack(anchor="w", pady=(0, 15))
 
         info_frame = tk.Frame(pad, bg="#f0f0f0", padx=15, pady=15)
         info_frame.pack(fill="x", pady=10)
@@ -863,8 +907,10 @@ class SmartCaptureApp:
 
     def toggle_language(self):
         self.current_lang = "EN" if self.current_lang == "DE" else "DE"
+        self.load_config()
         self.update_texts()
         self.update_session_file_count()
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def t(self, key): return TEXTS[key][self.current_lang]
 
