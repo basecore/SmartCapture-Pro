@@ -28,28 +28,26 @@ Created by [@basecore](https://github.com/basecore)
 - 📋 **Clipboard Management:** Auto-copies results for quick pasting.
 - ⚙️ **Configurable:** Select your preferred browser and AI chat platform directly in the settings.
 
-## 🚀 Installation
+## 🚀 Installation & Zero-Setup
+
+SmartCapture Pro is designed to be **plug & play**. You only need the single Python file!
 
 ### 1. Prerequisites
-- **Python 3.8+** installed.
-- **Tesseract OCR** installed on your system:
-  - *Windows:* Download the installer from [UB-Mannheim](https://github.com/UB-Mannheim/tesseract/wiki) and ensure `tesseract.exe` is in your system's PATH.
+- **Python 3.8+** installed on your system.
+- *Note for Windows users:* Ensure `tcl/tk and IDLE` is checked during the Python installation (it is by default).
 
-### 2. Clone the Repository
+### 2. Run the Application
+Simply download the script or clone the repository and run it. No manual `pip install` required!
 ```bash
 git clone https://github.com/basecore/SmartCapture-Pro.git
 cd SmartCapture-Pro
-```
-
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Run the Application
-```bash
 python SmartCapture_Pro.py
 ```
+
+### 🪄 Auto-Installation Magic
+On the very first run, the script will **automatically**:
+- Install all required Python dependencies (like `pytesseract`, `Pillow`, `mss`, `sv-ttk`, etc.) via `pip`.
+- Download and install **Tesseract OCR** (including language packs like German and English) directly to your local AppData folder—**no admin rights required!**
 
 ## 🛠️ Usage
 1. Start the tool via terminal or command prompt.
