@@ -1,0 +1,1 @@
+SmartCapture_Pro.py content
