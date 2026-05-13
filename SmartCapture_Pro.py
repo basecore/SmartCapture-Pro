@@ -29,7 +29,7 @@ import ssl
 # --- 0. HIGH DPI FIX ---
 import ctypes
 try:
-    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
 except Exception:
     try:
         ctypes.windll.user32.SetProcessDPIAware()
@@ -162,7 +162,7 @@ TRANSPARENT_KEY = "#ff00ff"
 
 # VERSION INFO
 TOOL_NAME = "SmartCapture Pro"
-TOOL_VER = "v23.0 | Stand: 13.05.2026"
+TOOL_VER = "v23.3 | Stand: 13.05.2026"
 
 # --- AI CHAT SETTINGS (change defaults here) ---
 AI_CHAT_URL = "https://chatgpt.com/"  # e.g. https://gemini.google.com or https://claude.ai
@@ -363,90 +363,14 @@ class ResizableSelectionWindow(tk.Toplevel):
         self.attributes("-topmost", True)
         self.config(bg=ACCENT_COLOR)
         self.wm_attributes("-transparentcolor", TRANSPARENT_KEY)
-        
-        # Der transparente Innenbereich
+
         self.inner_frame = tk.Frame(self, bg=TRANSPARENT_KEY)
-        self.inner_frame.pack(fill="both", expand=True, padx=15, pady=15) 
-        
+        self.inner_frame.pack(fill="both", expand=True, padx=10, pady=10) 
+
         lbl = tk.Label(self, text=label_text, bg=ACCENT_COLOR, fg="white", font=("Arial", 9, "bold"))
         lbl.place(x=0, y=0)
-        
-        # Standard Sizegrip unten rechts (deutlich sichtbar lassen)
+
         ttk.Sizegrip(self).place(relx=1.0, rely=1.0, anchor="se")
-        
-        # --- EIGENE ZIEH-BEREICHE (RESIZE HANDLES) FÜR DEN GRÜNEN RAHMEN ---
-        self.border_thickness = 15
-        self._bind_resize_events()
-
-    def _bind_resize_events(self):
-        # Wir binden Maus-Events direkt an das Fenster, um Klicks auf den grünen Rand abzufangen
-        self.bind("<ButtonPress-1>", self.start_resize)
-        self.bind("<B1-Motion>", self.do_resize)
-        self.bind("<Motion>", self.change_cursor)
-        self.resize_edge = None
-
-    def change_cursor(self, event):
-        # Wenn die Maus über dem transparenten Innenbereich ist, Standard-Cursor
-        if self.border_thickness < event.x < self.winfo_width() - self.border_thickness and \
-           self.border_thickness < event.y < self.winfo_height() - self.border_thickness:
-            self.config(cursor="arrow")
-        else:
-            # Ansonsten sind wir auf dem Rand -> passenden Cursor anzeigen
-            x, y = event.x, event.y
-            w, h = self.winfo_width(), self.winfo_height()
-            t = self.border_thickness
-            
-            if x >= w - t and y >= h - t: self.config(cursor="sizing") # Unten rechts
-            elif x <= t and y <= t: self.config(cursor="sizing") # Oben links
-            elif x >= w - t and y <= t: self.config(cursor="sizing") # Oben rechts
-            elif x <= t and y >= h - t: self.config(cursor="sizing") # Unten links
-            elif x >= w - t: self.config(cursor="sb_h_double_arrow") # Rechts
-            elif x <= t: self.config(cursor="sb_h_double_arrow") # Links
-            elif y >= h - t: self.config(cursor="sb_v_double_arrow") # Unten
-            elif y <= t: self.config(cursor="sb_v_double_arrow") # Oben
-
-    def start_resize(self, event):
-        x, y = event.x, event.y
-        w, h = self.winfo_width(), self.winfo_height()
-        t = self.border_thickness
-        
-        self.resize_edge = ""
-        if y <= t: self.resize_edge += "n"
-        elif y >= h - t: self.resize_edge += "s"
-        
-        if x <= t: self.resize_edge += "w"
-        elif x >= w - t: self.resize_edge += "e"
-        
-        self.start_x = event.x_root
-        self.start_y = event.y_root
-        self.start_w = w
-        self.start_h = h
-        self.start_win_x = self.winfo_rootx()
-        self.start_win_y = self.winfo_rooty()
-
-    def do_resize(self, event):
-        if not self.resize_edge:
-            return
-            
-        dx = event.x_root - self.start_x
-        dy = event.y_root - self.start_y
-        
-        new_w, new_h = self.start_w, self.start_h
-        new_x, new_y = self.start_win_x, self.start_win_y
-        
-        if "e" in self.resize_edge:
-            new_w = max(100, self.start_w + dx)
-        elif "w" in self.resize_edge:
-            new_w = max(100, self.start_w - dx)
-            if new_w > 100: new_x = self.start_win_x + dx
-            
-        if "s" in self.resize_edge:
-            new_h = max(100, self.start_h + dy)
-        elif "n" in self.resize_edge:
-            new_h = max(100, self.start_h - dy)
-            if new_h > 100: new_y = self.start_win_y + dy
-            
-        self.geometry(f"{new_w}x{new_h}+{new_x}+{new_y}")
 
 class ScrollableFrame(tk.Frame):
     def __init__(self, container, *args, **kwargs):
@@ -820,7 +744,7 @@ class SmartCaptureApp:
         pad.pack(fill="both", expand=True, padx=20, pady=20)
 
         tk.Label(pad, text="SmartCapture Pro", font=("Segoe UI", 16, "bold"), bg=BG_COLOR, fg=ACCENT_COLOR).pack(anchor="w")
-        tk.Label(pad, text="Version: v23.0 | Stand: 13.05.2026", font=("Segoe UI", 10), bg=BG_COLOR, fg=DARK_COLOR).pack(anchor="w", pady=(0, 15))
+        tk.Label(pad, text="Version: v23.3 | Stand: 13.05.2026", font=("Segoe UI", 10), bg=BG_COLOR, fg=DARK_COLOR).pack(anchor="w", pady=(0, 15))
 
         info_frame = tk.Frame(pad, bg="#f0f0f0", padx=15, pady=15)
         info_frame.pack(fill="x", pady=10)
@@ -1063,10 +987,14 @@ class SmartCaptureApp:
             return
             
         self.root.update_idletasks()
+
+        # Speichere die exakte Fenster-Geometrie zum Wiederherstellen
+        self.last_frame_geo = self.selector_win.geometry()
+
+        # Hole die absoluten inneren Koordinaten für den Screenshot
         wx, wy = self.selector_win.winfo_rootx(), self.selector_win.winfo_rooty()
         ww, wh = self.selector_win.winfo_width(), self.selector_win.winfo_height()
-        
-        self.last_frame_geo = f"{ww}x{wh}+{wx}+{wy}"
+
         BORDER = 10
         self.selector_win.destroy()
         self.selector_win = None
