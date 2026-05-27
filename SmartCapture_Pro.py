@@ -617,7 +617,6 @@ class SmartCaptureApp:
         self.var_job.set("")
         self.var_comp.set("")
         self.var_dept.set("")
-        self.var_title.set("")
         if hasattr(self, 'var_trans_lang'):
             self.var_trans_lang.set("")
         self.update_ai_prompt_text()
