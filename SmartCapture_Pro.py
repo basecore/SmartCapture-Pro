@@ -183,7 +183,7 @@ PREPROC_KEYS = ["none", "scale2x", "gray_contrast"]
 # PROMPT TEMPLATES
 PROMPT_TEMPLATE_DE = """Du bist ein erfahrener technischer Projektassistent und Experte für die Strukturierung von unaufgeräumten Meeting-Transkripten.
 
-Ich arbeite als {job} bei {comp} im Bereich {dept}.
+{context_sentence}
 Dies ist ein durch OCR (Texterkennung) generierter Export eines Meetings mit dem Titel '{title}'.
 
 {trans_note}
@@ -217,7 +217,7 @@ Hier ist der OCR-Text:
 
 PROMPT_TEMPLATE_EN = """You are an experienced technical project assistant and an expert in structuring messy meeting transcripts.
 
-I work as a {job} at {comp} in the {dept} department.
+{context_sentence}
 This is an OCR-generated transcript export of a meeting titled '{title}'.
 
 {trans_note}
@@ -613,6 +613,15 @@ class SmartCaptureApp:
         
         self.root.update_idletasks()
 
+    def clear_context(self):
+        self.var_job.set("")
+        self.var_comp.set("")
+        self.var_dept.set("")
+        self.var_title.set("")
+        if hasattr(self, 'var_trans_lang'):
+            self.var_trans_lang.set("")
+        self.update_ai_prompt_text()
+
     def setup_ai_tab(self):
         sf = ScrollableFrame(self.tab_ai, bg=BG_COLOR)
         sf.pack(fill="both", expand=True)
@@ -620,23 +629,32 @@ class SmartCaptureApp:
         pad = tk.Frame(content, bg=BG_COLOR, padx=20, pady=10)
         pad.pack(fill="both", expand=True)
 
-        self.lbl_sec_ai_ctx = self.create_header(pad, "")
-        
+        header_frame = tk.Frame(pad, bg=BG_COLOR)
+        header_frame.pack(fill="x", pady=5)
+
+        self.lbl_sec_ai_ctx = self.create_header(header_frame, "")
+        self.lbl_sec_ai_ctx.pack(side="left")
+
+        # ADDED RESET BUTTON
+        self.btn_clear_ctx = tk.Button(header_frame, text="Reset", command=self.clear_context, bg="#d9534f", fg="white", relief="flat", font=("Segoe UI", 8, "bold"))
+        self.btn_clear_ctx.pack(side="right", padx=5)
+
         self.lbl_job = tk.Label(pad, text="", bg=BG_COLOR)
         self.lbl_job.pack(anchor="w")
         tk.Entry(pad, textvariable=self.var_job, bg="#f0f0f0").pack(fill="x", pady=2)
-        
+
         self.lbl_comp = tk.Label(pad, text="", bg=BG_COLOR)
         self.lbl_comp.pack(anchor="w")
         tk.Entry(pad, textvariable=self.var_comp, bg="#f0f0f0").pack(fill="x", pady=2)
-        
+
         self.lbl_dept = tk.Label(pad, text="", bg=BG_COLOR)
         self.lbl_dept.pack(anchor="w")
         tk.Entry(pad, textvariable=self.var_dept, bg="#f0f0f0").pack(fill="x", pady=2)
-        
+
         self.lbl_title = tk.Label(pad, text="", bg=BG_COLOR)
         self.lbl_title.pack(anchor="w")
         tk.Entry(pad, textvariable=self.var_title, bg="#f0f0f0").pack(fill="x", pady=2)
+
         self.lbl_trans_lang = tk.Label(pad, text="", bg=BG_COLOR)
         self.lbl_trans_lang.pack(anchor="w", pady=(5,0))
         tk.Entry(pad, textvariable=self.var_trans_lang, bg="#f0f0f0").pack(fill="x", pady=2)
@@ -832,10 +850,27 @@ class SmartCaptureApp:
         if hasattr(self, 'var_trans_lang') and self.var_trans_lang.get().strip():
             trans_note = "\n[WICHTIGER HINWEIS ZUR TRANSKRIPTION]: " + self.var_trans_lang.get().strip() + "\n" if self.current_lang == "DE" else "\n[IMPORTANT TRANSCRIPT NOTE]: " + self.var_trans_lang.get().strip() + "\n"
 
+        job = self.var_job.get().strip()
+        comp = self.var_comp.get().strip()
+        dept = self.var_dept.get().strip()
+
+        context_sentence = ""
+        if job or comp or dept:
+            if self.current_lang == "DE":
+                parts = []
+                if job: parts.append(f"als {job}")
+                if comp: parts.append(f"bei {comp}")
+                if dept: parts.append(f"im Bereich {dept}")
+                context_sentence = "Ich arbeite " + " ".join(parts) + "."
+            else:
+                parts = []
+                if job: parts.append(f"as a {job}")
+                if comp: parts.append(f"at {comp}")
+                if dept: parts.append(f"in the {dept} department")
+                context_sentence = "I work " + " ".join(parts) + "."
+
         return tmpl.format(
-            job=self.var_job.get(),
-            comp=self.var_comp.get(),
-            dept=self.var_dept.get(),
+            context_sentence=context_sentence,
             title=self.var_title.get(),
             trans_note=trans_note
         )
