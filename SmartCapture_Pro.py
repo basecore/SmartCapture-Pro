@@ -164,7 +164,7 @@ TRANSPARENT_KEY = "#ff00ff"
 
 # VERSION INFO
 TOOL_NAME = "SmartCapture Pro"
-TOOL_VER = "v25.1 | Stand: 27.05.2026"
+TOOL_VER = "v25.4 | Stand: 08.06.2026"
 
 # --- AI CHAT SETTINGS (change defaults here) ---
 AI_CHAT_URL = "https://chatgpt.com/"  # e.g. https://gemini.google.com or https://claude.ai
@@ -300,6 +300,8 @@ TEXTS = {
     "lbl_about_text": {"DE": "Generiert mit Gemini 3.1 Pro.\nSmartCapture Pro ist ein Tool zur Automatisierung von OCR-Erfassung für Live-Transkripte.", "EN": "Generated with Gemini 3.1 Pro.\nSmartCapture Pro is a tool for automating OCR capture of live transcripts."},
     "lbl_trans_lang": {"DE": "⚠️ Abweichende Transkription? (z.B. gespr.: EN, Text: DE):", "EN": "⚠️ Transcript mismatch? (e.g. spoken: EN, transcript: DE):"},
     "lbl_frame_pull": {"DE": " RAHMEN ZIEHEN ", "EN": " DRAW FRAME "},
+    "lbl_frame_confirm": {"DE": " BEREICH ÜBERNEHMEN ", "EN": " CONFIRM AREA "},
+    "lbl_frame_close": {"DE": " ✕ SCHLIESSEN ", "EN": " ✕ CLOSE "},
 "btn_chat": {"DE": "🌐 AI Chat öffnen & Text kopieren", "EN": "🌐 Open AI Chat & Copy Text"},
     "err_no_export": {"DE": "Bitte starte zuerst die OCR-Verarbeitung und den Export!", "EN": "Please run OCR processing and export first!"},
     "msg_chat_copied": {"DE": "Text erfolgreich kopiert!\n\nBrowser wird geöffnet...\nFüge den Text einfach in das Chat-Feld ein (Strg+V).", "EN": "Text successfully copied!\n\nOpening browser...\nJust paste the text into the chat field (Ctrl+V)."},
@@ -358,21 +360,134 @@ OCR_LANGS = {
 # --- KLASSEN ---
 
 class ResizableSelectionWindow(tk.Toplevel):
-    def __init__(self, master, label_text=" RAHMEN ZIEHEN "):
+    HANDLE = 12
+    MIN_W = 120
+    MIN_H = 80
+
+    def __init__(self, master, label_text=" RAHMEN ZIEHEN ", confirm_text=" BEREICH ÜBERNEHMEN ", close_text=" ✕ SCHLIESSEN ", on_confirm=None):
         super().__init__(master)
+        self.on_confirm = on_confirm
         self.title("Selector")
         self.geometry("700x450+100+100")
         self.attributes("-topmost", True)
         self.config(bg=ACCENT_COLOR)
         self.wm_attributes("-transparentcolor", TRANSPARENT_KEY)
+        self.overrideredirect(True)
 
-        self.inner_frame = tk.Frame(self, bg=TRANSPARENT_KEY)
-        self.inner_frame.pack(fill="both", expand=True, padx=10, pady=10) 
+        self._drag_mode = None
+        self._drag_start = None
+        self._start_geom = None
 
-        lbl = tk.Label(self, text=label_text, bg=ACCENT_COLOR, fg="white", font=("Arial", 9, "bold"))
-        lbl.place(x=0, y=0)
+        self.outer = tk.Frame(self, bg=ACCENT_COLOR, highlightthickness=0, bd=0)
+        self.outer.pack(fill="both", expand=True)
 
-        ttk.Sizegrip(self).place(relx=1.0, rely=1.0, anchor="se")
+        self.inner_frame = tk.Frame(self.outer, bg=TRANSPARENT_KEY, highlightthickness=0, bd=0)
+        self.inner_frame.place(x=self.HANDLE, y=self.HANDLE, relwidth=1.0, relheight=1.0,
+                               width=-2*self.HANDLE, height=-2*self.HANDLE)
+
+        lbl = tk.Label(self.outer, text=label_text, bg=ACCENT_COLOR, fg="white", font=("Arial", 9, "bold"), padx=6, pady=2, cursor="fleur")
+        lbl.place(x=6, y=6)
+        self.caption_label = lbl
+
+        self.confirm_label = tk.Label(self.outer, text=confirm_text, bg=ACCENT_COLOR, fg="white", font=("Arial", 9, "bold"), padx=6, pady=2, cursor="hand2")
+        self.confirm_label.place(relx=0.5, y=6, anchor="n")
+
+        self.close_label = tk.Label(self.outer, text=close_text, bg=ACCENT_COLOR, fg="white", font=("Arial", 9, "bold"), padx=6, pady=2, cursor="hand2")
+        self.close_label.place(relx=1.0, x=-6, y=6, anchor="ne")
+
+        self._make_handles()
+        self._bind_move(self.caption_label)
+        self._bind_move(self.inner_frame)
+        self.confirm_label.bind("<Button-1>", lambda e: self.on_confirm() if callable(self.on_confirm) else None)
+        self.close_label.bind("<Button-1>", lambda e: self.destroy())
+        self.bind("<Escape>", lambda e: self.destroy())
+
+    def _make_handles(self):
+        t = self.HANDLE
+        specs = {
+            "n":  dict(relx=0, rely=0, relwidth=1, height=t, anchor="nw", cursor="sb_v_double_arrow"),
+            "s":  dict(relx=0, rely=1, relwidth=1, height=t, y=-t, anchor="nw", cursor="sb_v_double_arrow"),
+            "w":  dict(relx=0, rely=0, width=t, relheight=1, anchor="nw", cursor="sb_h_double_arrow"),
+            "e":  dict(relx=1, rely=0, width=t, relheight=1, x=-t, anchor="nw", cursor="sb_h_double_arrow"),
+            "nw": dict(x=0, y=0, width=t, height=t, anchor="nw", cursor="size_nw_se"),
+            "ne": dict(relx=1, x=-t, y=0, width=t, height=t, anchor="nw", cursor="size_ne_sw"),
+            "sw": dict(x=0, rely=1, y=-t, width=t, height=t, anchor="nw", cursor="size_ne_sw"),
+            "se": dict(relx=1, rely=1, x=-t, y=-t, width=t, height=t, anchor="nw", cursor="size_nw_se"),
+        }
+        self.handles = {}
+        for mode, place_kwargs in specs.items():
+            cursor = place_kwargs.pop("cursor")
+            handle = tk.Frame(self.outer, bg=ACCENT_COLOR, highlightthickness=0, bd=0, cursor=cursor)
+            handle.place(**place_kwargs)
+            handle.bind("<ButtonPress-1>", lambda e, m=mode: self._start_resize(e, m))
+            handle.bind("<B1-Motion>", self._perform_resize)
+            handle.bind("<ButtonRelease-1>", self._stop_action)
+            self.handles[mode] = handle
+
+    def _bind_move(self, widget):
+        widget.bind("<ButtonPress-1>", self._start_move)
+        widget.bind("<B1-Motion>", self._perform_move)
+        widget.bind("<ButtonRelease-1>", self._stop_action)
+
+    def _parse_geometry(self):
+        self.update_idletasks()
+        return self.winfo_x(), self.winfo_y(), self.winfo_width(), self.winfo_height()
+
+    def get_capture_box(self):
+        self.update_idletasks()
+        x = self.winfo_rootx() + self.HANDLE
+        y = self.winfo_rooty() + self.HANDLE
+        w = max(1, self.winfo_width() - 2*self.HANDLE)
+        h = max(1, self.winfo_height() - 2*self.HANDLE)
+        return x, y, w, h
+
+    def _start_move(self, event):
+        self._drag_mode = "move"
+        self._drag_start = (event.x_root, event.y_root)
+        self._start_geom = self._parse_geometry()
+
+    def _perform_move(self, event):
+        if self._drag_mode != "move" or not self._start_geom:
+            return
+        sx, sy = self._drag_start
+        gx, gy, gw, gh = self._start_geom
+        nx = gx + (event.x_root - sx)
+        ny = gy + (event.y_root - sy)
+        self.geometry(f"{gw}x{gh}+{int(nx)}+{int(ny)}")
+
+    def _start_resize(self, event, mode):
+        self._drag_mode = mode
+        self._drag_start = (event.x_root, event.y_root)
+        self._start_geom = self._parse_geometry()
+
+    def _perform_resize(self, event):
+        if not self._drag_mode or self._drag_mode == "move" or not self._start_geom:
+            return
+        sx, sy = self._drag_start
+        dx = event.x_root - sx
+        dy = event.y_root - sy
+        x, y, w, h = self._start_geom
+        left = x
+        top = y
+        right = x + w
+        bottom = y + h
+        mode = self._drag_mode
+        if "w" in mode:
+            left = min(left + dx, right - self.MIN_W)
+        if "e" in mode:
+            right = max(right + dx, left + self.MIN_W)
+        if "n" in mode:
+            top = min(top + dy, bottom - self.MIN_H)
+        if "s" in mode:
+            bottom = max(bottom + dy, top + self.MIN_H)
+        new_w = max(self.MIN_W, right - left)
+        new_h = max(self.MIN_H, bottom - top)
+        self.geometry(f"{int(new_w)}x{int(new_h)}+{int(left)}+{int(top)}")
+
+    def _stop_action(self, _event=None):
+        self._drag_mode = None
+        self._drag_start = None
+        self._start_geom = None
 
 class ScrollableFrame(tk.Frame):
     def __init__(self, container, *args, **kwargs):
@@ -712,7 +827,10 @@ class SmartCaptureApp:
         self.chk_auto_files.pack(side="left")
         
         self.btn_clear_session = tk.Button(fr_auto, text="🗑️", command=self.clear_session_files, relief="flat", bg="#f0f0f0", cursor="hand2")
-        self.btn_clear_session.pack(side="left", padx=10)
+        self.btn_clear_session.pack(side="left", padx=(10, 4))
+
+        self.btn_delete_session = tk.Button(fr_auto, text="🧨", command=self.delete_session_files, relief="flat", bg="#f0f0f0", cursor="hand2")
+        self.btn_delete_session.pack(side="left", padx=(4, 10))
 
         
         self.fr_progress = tk.Frame(pad, bg=BG_COLOR)
@@ -805,7 +923,7 @@ class SmartCaptureApp:
         pad.pack(fill="both", expand=True, padx=20, pady=20)
 
         tk.Label(pad, text="SmartCapture Pro", font=("Segoe UI", 16, "bold"), bg=BG_COLOR, fg=ACCENT_COLOR).pack(anchor="w")
-        tk.Label(pad, text="Version: v25.1 | Stand: 27.05.2026", font=("Segoe UI", 10), bg=BG_COLOR, fg=DARK_COLOR).pack(anchor="w", pady=(0, 15))
+        tk.Label(pad, text="Version: v25.4 | Stand: 08.06.2026", font=("Segoe UI", 10), bg=BG_COLOR, fg=DARK_COLOR).pack(anchor="w", pady=(0, 15))
 
         info_frame = tk.Frame(pad, bg="#f0f0f0", padx=15, pady=15)
         info_frame.pack(fill="x", pady=10)
@@ -941,9 +1059,9 @@ class SmartCaptureApp:
 
     def toggle_language(self):
         self.current_lang = "EN" if self.current_lang == "DE" else "DE"
-        self.load_config()
         self.update_texts()
         self.update_session_file_count()
+        self.save_config()
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def t(self, key): return TEXTS[key][self.current_lang]
@@ -994,6 +1112,7 @@ class SmartCaptureApp:
         self.lbl_sec_ocr_run.config(text=self.t("sec_ocr_run"))
         self.btn_ocr.config(text=self.t("btn_ocr"))
         self.btn_clear_session.config(text=self.t("btn_clear_session"))
+        self.btn_delete_session.config(text="🧨 Löschen" if self.current_lang == "DE" else "🧨 Delete")
         self.lbl_chat_info.config(text=self.t("info_chat"))
         self.btn_chat.config(text=self.t("btn_chat"))
 
@@ -1049,11 +1168,41 @@ class SmartCaptureApp:
         self.session_files.clear()
         self.update_session_file_count()
 
+    def delete_session_files(self):
+        files = [f for f in self.session_files if os.path.exists(f)]
+        if not files:
+            msg = "Keine Dateien zum Löschen vorhanden." if self.current_lang == "DE" else "No files available to delete."
+            messagebox.showinfo("Info", msg)
+            return
+
+        question = "Sollen die Bilder der aktuellen Sitzung wirklich gelöscht werden?" if self.current_lang == "DE" else "Do you really want to delete the images from the current session?"
+        if not messagebox.askyesno(self.t("err_title"), question):
+            return
+
+        deleted = 0
+        for f in list(files):
+            try:
+                os.remove(f)
+                deleted += 1
+            except Exception:
+                pass
+
+        self.session_files = [f for f in self.session_files if os.path.exists(f)]
+        self.update_session_file_count()
+        msg = f"{deleted} Bilder gelöscht." if self.current_lang == "DE" else f"{deleted} images deleted."
+        self.lbl_status.config(text=msg, fg=ACCENT_COLOR)
+
     def open_selector(self):
         if self.selector_win and self.selector_win.winfo_exists():
             self.selector_win.destroy()
             
-        self.selector_win = ResizableSelectionWindow(self.root, self.t("lbl_frame_pull"))
+        self.selector_win = ResizableSelectionWindow(
+            self.root,
+            self.t("lbl_frame_pull"),
+            self.t("lbl_frame_confirm"),
+            self.t("lbl_frame_close"),
+            on_confirm=self.lock_selector
+        )
         if self.last_frame_geo:
             self.selector_win.geometry(self.last_frame_geo)
             
@@ -1072,19 +1221,13 @@ class SmartCaptureApp:
         self.last_frame_geo = self.selector_win.geometry()
 
         # Hole die absoluten inneren Koordinaten für den Screenshot
-        wx, wy = self.selector_win.winfo_rootx(), self.selector_win.winfo_rooty()
-        ww, wh = self.selector_win.winfo_width(), self.selector_win.winfo_height()
+        m_left, m_top, m_width, m_height = self.selector_win.get_capture_box()
 
-        BORDER = 10
         self.selector_win.destroy()
         self.selector_win = None
         self.root.update()
         
-        m_left = int(wx + BORDER)
-        m_top = int(wy + BORDER)
-        m_width = int(ww - 2*BORDER)
-        m_height = int(wh - 2*BORDER)
-        self.monitor_area = { "top": m_top, "left": m_left, "width": m_width, "height": m_height, "mon": -1 }
+        self.monitor_area = { "top": int(m_top), "left": int(m_left), "width": int(m_width), "height": int(m_height), "mon": -1 }
         
         self.adjust_preview_layout(m_width, m_height)
         
