@@ -331,6 +331,10 @@ TEXTS = {
     "sec_info": {"DE": "Hilfe & Info", "EN": "Help & Info"},
     "info_text": {"DE": "Tesseract OCR wird benötigt.", "EN": "Tesseract OCR is required."},
     "link_text": {"DE": "🔗 Tesseract Download (GitHub)", "EN": "🔗 Download Tesseract (GitHub)"},
+    "sec_split": {"DE": "Textdatei-Aufteilung", "EN": "Text File Splitting"},
+    "lbl_max_chars": {"DE": "Max. Zeichen pro Exportdatei (0 = deaktiviert):", "EN": "Max. chars per export file (0 = disabled):"},
+    "msg_split_done": {"DE": "Export fertig! {n} Datei(en) erstellt (aufgeteilt bei {max} Zeichen):\n{files}", "EN": "Export done! {n} file(s) created (split at {max} chars):\n{files}"},
+    "msg_export_done": {"DE": "Export fertig! Gespeichert als:\n{fname}", "EN": "Export done! Saved as:\n{fname}"},
     
     # Dropdowns
     "dd_preproc_none": {"DE": "Keine (Original)", "EN": "None (Original)"},
@@ -553,6 +557,7 @@ class SmartCaptureApp:
         self.var_ocr_file = tk.BooleanVar(value=True)
         self.var_preproc = tk.StringVar(value="scale2x")
         self.var_psm = tk.StringVar(value="block")
+        self.var_max_chars = tk.IntVar(value=150000)
 
         # Context Vars
         self.var_job = tk.StringVar(value="Software Developer")
@@ -625,6 +630,7 @@ class SmartCaptureApp:
                     if "trans_lang" in data: self.var_trans_lang.set(data["trans_lang"])
                     if "tess_path" in data: self.var_tess_path.set(data["tess_path"])
                     if "lang" in data: self.current_lang = data["lang"]
+                    if "max_chars" in data: self.var_max_chars.set(int(data["max_chars"]))
         except Exception as e:
             print("Could not load config:", e)
 
@@ -639,7 +645,8 @@ class SmartCaptureApp:
                 "title": self.var_title.get(),
                 "trans_lang": getattr(self, "var_trans_lang", tk.StringVar()).get(),
                 "tess_path": self.var_tess_path.get(),
-                "lang": self.current_lang
+                "lang": self.current_lang,
+                "max_chars": self.var_max_chars.get()
             }
             with open(self.config_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4)
@@ -899,6 +906,22 @@ class SmartCaptureApp:
         self.lbl_link.bind("<Button-1>", lambda e: webbrowser.open("https://github.com/UB-Mannheim/tesseract/wiki"))
 
 
+        # ── Textdatei-Aufteilung ─────────────────────────────────────────
+        tk.Frame(pad, bg=ACCENT_COLOR, height=2).pack(fill="x", pady=(14, 4))
+        self.lbl_sec_split = tk.Label(pad, text="", bg=BG_COLOR, fg=ACCENT_COLOR, font=("Segoe UI", 11, "bold"))
+        self.lbl_sec_split.pack(anchor="w")
+        self.lbl_max_chars = tk.Label(pad, text="", bg=BG_COLOR, font=("Segoe UI", 9))
+        self.lbl_max_chars.pack(anchor="w", pady=(6, 0))
+        fr_split = tk.Frame(pad, bg=BG_COLOR)
+        fr_split.pack(fill="x", pady=4)
+        self.spin_max_chars = tk.Spinbox(
+            fr_split, from_=0, to=10_000_000, increment=10000,
+            textvariable=self.var_max_chars, width=12,
+            font=("Consolas", 10), bg="#f0f0f0", relief="flat"
+        )
+        self.spin_max_chars.pack(side="left")
+        tk.Label(fr_split, text=" chars", bg=BG_COLOR, font=("Segoe UI", 9), fg="#666666").pack(side="left")
+
         # ── AI Chat Settings ──────────────────────────────────────────────
         tk.Frame(pad, bg=ACCENT_COLOR, height=2).pack(fill="x", pady=(14, 4))
         tk.Label(pad, text="🌐 AI Chat Einstellungen / AI Chat Settings",
@@ -1143,6 +1166,8 @@ class SmartCaptureApp:
         self.lbl_sec_info.config(text=self.t("sec_info"))
         self.lbl_info_text.config(text=self.t("info_text"))
         self.lbl_link.config(text=self.t("link_text"))
+        self.lbl_sec_split.config(text=self.t("sec_split"))
+        self.lbl_max_chars.config(text=self.t("lbl_max_chars"))
 
         
         if hasattr(self, 'lbl_about_title'):
@@ -1570,8 +1595,38 @@ class SmartCaptureApp:
             fname = os.path.join(self.var_out_dir.get(), f"Export_{slug}_Start-{rec_start_str}_{now_str}.txt")
         else:
             fname = os.path.join(self.var_out_dir.get(), f"Export_{rec_start_str}_{now_str}.txt")
-        with open(fname, "w", encoding="utf-8") as f: f.write(full_text)
-        os.startfile(fname)
+        max_chars = self.var_max_chars.get()
+        if max_chars > 0 and len(full_text) > max_chars:
+            created_files = []
+            created_paths = []
+            part = 1
+            pos = 0
+            text_len = len(full_text)
+            while pos < text_len:
+                chunk = full_text[pos:pos + max_chars]
+                if pos + max_chars < text_len:
+                    last_nl = chunk.rfind("\n")
+                    if last_nl > max_chars // 2:
+                        chunk = full_text[pos:pos + last_nl + 1]
+                if slug:
+                    part_fname = os.path.join(self.var_out_dir.get(), f"Export_{slug}_Start-{rec_start_str}_{now_str}_Teil{part}.txt")
+                else:
+                    part_fname = os.path.join(self.var_out_dir.get(), f"Export_{rec_start_str}_{now_str}_Teil{part}.txt")
+                with open(part_fname, "w", encoding="utf-8") as wf:
+                    wf.write(chunk)
+                created_files.append(os.path.basename(part_fname))
+                created_paths.append(part_fname)
+                pos += len(chunk)
+                part += 1
+            self.last_export_text = full_text
+            os.startfile(created_paths[0])
+            files_list = "\n".join(created_files)
+            messagebox.showinfo("Export", self.t("msg_split_done").format(n=len(created_files), max=max_chars, files=files_list))
+        else:
+            with open(fname, "w", encoding="utf-8") as f: f.write(full_text)
+            self.last_export_text = full_text
+            os.startfile(fname)
+            messagebox.showinfo("Export", self.t("msg_export_done").format(fname=os.path.basename(fname)))
 
 
     # ── Hilfsfunktion: sicherer Dateiname-Teil aus Meeting-Titel ──────────────
