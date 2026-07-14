@@ -1481,19 +1481,15 @@ class SmartCaptureApp:
         self.recording_start_dt = datetime.datetime.now()
     
         date_part = self.recording_start_dt.strftime("%Y-%m-%d")
-        start_part = self.recording_start_dt.strftime("%H-%M")
+        time_part = self.recording_start_dt.strftime("%H-%M")
         title_part = self._title_slug(max_len=60)
     
-        day_folder = f"{date_part}_{title_part}" if title_part else date_part
-        day_out_d = os.path.join(base_out_d, day_folder)
-        os.makedirs(day_out_d, exist_ok=True)
-    
-        session_folder = f"{date_part}_{start_part}_{title_part}" if title_part else f"{date_part}_{start_part}"
-        session_out_d = os.path.join(day_out_d, session_folder)
+        folder_name = f"{date_part}_{time_part}_{title_part}" if title_part else f"{date_part}_{time_part}"
+        session_out_d = os.path.join(base_out_d, folder_name)
         os.makedirs(session_out_d, exist_ok=True)
     
-        self._day_out_d = day_out_d
         self._session_out_d = session_out_d
+        self._root_out_d = base_out_d
     
         self.is_recording = True
         self.btn_start.config(state="disabled", bg="#cccccc")
@@ -1575,12 +1571,13 @@ class SmartCaptureApp:
             messagebox.showerror(self.t("err_title"), self.t("err_tess"))
             return
         pytesseract.pytesseract.tesseract_cmd = tess
-        
+    
         if self.var_auto_files.get() and len(self.session_files) > 0:
             fps = self.session_files
         else:
             out_d = self.var_out_dir.get()
-            if not os.path.exists(out_d): os.makedirs(out_d)
+            if not os.path.exists(out_d):
+                os.makedirs(out_d)
             fps = filedialog.askopenfilenames(initialdir=out_d, filetypes=[("Images", "*.png *.jpg")])
             if fps:
                 first_base = os.path.splitext(os.path.basename(fps[0]))[0]
@@ -1590,12 +1587,13 @@ class SmartCaptureApp:
                     if extracted_title:
                         self.var_title.set(extracted_title)
                         self.update_ai_prompt_text()
-            
-        if not fps: return
-        
+    
+        if not fps:
+            return
+    
         lang_key = self.combo_ocr.get()
         lang_code = OCR_LANGS.get(lang_key, "jpn+eng")
-        
+    
         curr_psm_val = self.combo_psm.get()
         psm_key = "block"
         for k in PSM_MAPPING.keys():
@@ -1603,44 +1601,44 @@ class SmartCaptureApp:
                 psm_key = k
                 break
         psm_arg = PSM_MAPPING[psm_key]
-
+    
         curr_pre_val = self.combo_preproc.get()
         preproc_key = "scale2x"
         for k in PREPROC_KEYS:
             if TEXTS[f"dd_preproc_{k}"][self.current_lang] == curr_pre_val:
                 preproc_key = k
                 break
-        
+    
         inc_date = self.var_ocr_date.get()
         inc_file = self.var_ocr_file.get()
-        
+    
         files = natsorted(list(fps))
         self.fr_progress.pack(fill="x", pady=(5, 5))
         self.btn_ocr.config(state="disabled")
         self.root.update_idletasks()
         self.root.update()
-        
+    
         now_str = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')
-        
+    
         prompt_txt = self.get_ai_prompt_string()
         full_text = f"{prompt_txt}\n\n"
         full_text += f"=== ORIGINAL OCR DATA START ===\n"
         _rec_start_info = self.recording_start_dt.strftime("%d.%m.%Y %H:%M:%S") if self.recording_start_dt else "unbekannt"
         full_text += f"Meeting-Titel: {self.var_title.get()} | Aufnahme-Beginn: {_rec_start_info}\n"
         full_text += f"Created: {now_str} | Settings: {lang_code}, {psm_arg}, {preproc_key}\n"
-        
+    
         self.progress_bar["maximum"] = len(files)
         self.progress_bar["value"] = 0
         for i, f in enumerate(files):
             self.lbl_progress.config(text=f"Texterkennung... Bild {i+1} / {len(files)}")
-            self.progress_bar["value"] = i+1
+            self.progress_bar["value"] = i + 1
             self.root.update()
-            
+    
             try:
                 img = Image.open(f)
                 img = self.preprocess_image(img, preproc_key)
                 ocr_txt = pytesseract.image_to_string(img, lang=lang_code, config=psm_arg)
-                
+    
                 if ocr_txt.strip() or inc_date or inc_file:
                     full_text += f"\n{'='*60}\n"
                     if inc_date:
@@ -1650,70 +1648,67 @@ class SmartCaptureApp:
                     if inc_file:
                         full_text += f"📄 FILE: {os.path.basename(f)}\n"
                     full_text += f"{'-'*60}\n{ocr_txt}\n"
-            except Exception as e: print(e)
-        
+            except Exception as e:
+                print(e)
+    
         self.fr_progress.pack_forget()
         self.btn_ocr.config(state="normal")
-        
+    
         self.last_export_text = full_text
-        # Dateiname: Titel + Aufnahme-Beginn + Export-Zeitstempel
-        slug = self._title_slug(max_len=40)
-        if self.recording_start_dt is not None:
-            rec_start_str = self.recording_start_dt.strftime("%Y-%m-%d_%H-%M-%S")
-        else:
-            rec_start_str = now_str
-        export_dir = getattr(self, "_day_out_d", None)
-        if not export_dir:
-            manual_title = self._title_slug(max_len=60)
-            manual_date = now_str[:10]
-            folder_name = f"{manual_date}_{manual_title}" if manual_title else manual_date
-            export_dir = os.path.join(self.var_out_dir.get(), folder_name)
-            os.makedirs(export_dir, exist_ok=True)
-        end_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
-        
+    
         date_part = self.recording_start_dt.strftime("%Y-%m-%d") if self.recording_start_dt else now_str[:10]
         start_part = self.recording_start_dt.strftime("%H-%M") if self.recording_start_dt else now_str[11:16]
         end_part = datetime.datetime.now().strftime("%H-%M")
         title_part = self._title_slug(max_len=60)
-        
+    
         if title_part:
-            part_fname = os.path.join(export_dir, f"{date_part}_{start_part}_{end_part}_{title_part}_Teil{part}.txt")
+            base_name = f"{date_part}_{start_part}_{end_part}_{title_part}"
         else:
-            part_fname = os.path.join(export_dir, f"{date_part}_{start_part}_{end_part}_Teil{part}.txt")
-            
+            base_name = f"{date_part}_{start_part}_{end_part}"
+    
+        export_dir = getattr(self, "_root_out_d", None)
+        if not export_dir:
+            export_dir = self.var_out_dir.get()
+            if not os.path.exists(export_dir):
+                os.makedirs(export_dir)
+    
         max_chars = self.var_max_chars.get()
+    
         if max_chars > 0 and len(full_text) > max_chars:
             created_files = []
             created_paths = []
             part = 1
             pos = 0
             text_len = len(full_text)
+    
             while pos < text_len:
                 chunk = full_text[pos:pos + max_chars]
                 if pos + max_chars < text_len:
                     last_nl = chunk.rfind("\n")
                     if last_nl > max_chars // 2:
                         chunk = full_text[pos:pos + last_nl + 1]
-                if slug:
-                    part_fname = os.path.join(export_dir, f"Export_{slug}_Start-{rec_start_str}_{now_str}_Teil{part}.txt")
-                else:
-                    part_fname = os.path.join(export_dir, f"Export_{rec_start_str}_{now_str}_Teil{part}.txt")
+    
+                part_fname = os.path.join(export_dir, f"{base_name}_Teil{part}.txt")
                 with open(part_fname, "w", encoding="utf-8") as wf:
                     wf.write(chunk)
+    
                 created_files.append(os.path.basename(part_fname))
                 created_paths.append(part_fname)
                 pos += len(chunk)
                 part += 1
+    
             self.last_export_text = full_text
             os.startfile(created_paths[0])
             files_list = "\n".join(created_files)
             messagebox.showinfo("Export", self.t("msg_split_done").format(n=len(created_files), max=max_chars, files=files_list))
         else:
-            with open(fname, "w", encoding="utf-8") as f: f.write(full_text)
+            fname = os.path.join(export_dir, f"{base_name}.txt")
+            with open(fname, "w", encoding="utf-8") as f:
+                f.write(full_text)
+    
             self.last_export_text = full_text
             os.startfile(fname)
             messagebox.showinfo("Export", self.t("msg_export_done").format(fname=os.path.basename(fname)))
-
 
     # ── Hilfsfunktion: sicherer Dateiname-Teil aus Meeting-Titel ──────────────
     def _title_slug(self, max_len=40):
