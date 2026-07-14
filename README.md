@@ -4,7 +4,7 @@
 [![License: Testing Only](https://img.shields.io/badge/License-Testing_Only-yellow.svg?style=for-the-badge)](https://github.com/basecore/SmartCapture-Pro)
 [![Python Version](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows_10%2F11-0078D7?style=for-the-badge&logo=windows)](https://www.microsoft.com/windows)
-[![Version](https://img.shields.io/badge/Version-v25.5-0078D7?style=for-the-badge)](https://github.com/basecore/SmartCapture-Pro)
+[![Version](https://img.shields.io/badge/Version-v25.6-0078D7?style=for-the-badge)](https://github.com/basecore/SmartCapture-Pro)
 
 > **⚠️ Disclaimer: For testing and demonstration purposes only.**
 
