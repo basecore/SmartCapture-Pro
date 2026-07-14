@@ -69,6 +69,10 @@ from natsort import natsorted
 # --- TESSERACT AUTO-INSTALLER ---
 # --- TESSERACT AUTO-INSTALLER ---
 # --- TESSERACT AUTO-INSTALLER ---
+
+from privacy_module import PrivacyManager
+
+    
 def ensure_tesseract_installed():
     """
     Prüft auf Tesseract und installiert es inkl. Sprachpaketen (DE, JP) 
@@ -165,7 +169,7 @@ TRANSPARENT_KEY = "#ff00ff"
 
 # VERSION INFO
 TOOL_NAME = "SmartCapture Pro"
-TOOL_VER = "v25.6 | Stand: 14.07.2026"
+TOOL_VER = "v25.7 | Stand: 14.07.2026"
 
 # --- AI CHAT SETTINGS (change defaults here) ---
 AI_CHAT_URL = "https://chatgpt.com/"  # e.g. https://gemini.google.com or https://claude.ai
@@ -589,6 +593,8 @@ class SmartCaptureApp:
         self.notebook = ttk.Notebook(root)
         self.notebook.pack(fill="both", expand=True)
         
+        self.privacy = PrivacyManager(self)
+        
         # TABS INITIALIZATION
         self.tab_rec = tk.Frame(self.notebook, bg=BG_COLOR)
         self.notebook.add(self.tab_rec, text="Recording")
@@ -614,10 +620,15 @@ class SmartCaptureApp:
         self.update_texts()
         self.update_session_file_count()
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        
+        self.privacy.check_scheduled_deletions()
 
     # --- SETUP TABS ---
     def load_config(self):
-        self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+        appdata_dir = os.path.join(os.getenv("LOCALAPPDATA", os.path.expanduser("~")), "SmartCapturePro")
+        os.makedirs(appdata_dir, exist_ok=True)
+        self.config_file = os.path.join(appdata_dir, "config.json")
+        
         try:
             if os.path.exists(self.config_file):
                 with open(self.config_file, "r", encoding="utf-8") as f:
@@ -699,20 +710,20 @@ class SmartCaptureApp:
         self.btn_stop.config(state="disabled")
         self.btn_stop.pack(side="left", fill="x", expand=True, padx=(5, 0))
         
-        self.lbl_status = tk.Label(pad, text="", bg=BG_COLOR, font=("Segoe UI", 10, "bold"), fg="#ffffff")
+        self.lbl_status = tk.Label(pad, text="", bg=BG_COLOR, font=("Segoe UI", 10, "bold"), fg=DARK_COLOR)
         self.lbl_status.pack(pady=2)
         
         self.preview_frame = tk.Frame(pad, bg=BG_COLOR)
         self.preview_frame.pack(fill="x", pady=2)
         
         self.frame_prev = tk.Frame(self.preview_frame, bg=BG_COLOR)
-        self.lbl_title_prev = tk.Label(self.frame_prev, text="", bg=BG_COLOR, font=("Segoe UI", 8, "bold"), fg="#ffffff")
+        self.lbl_title_prev = tk.Label(self.frame_prev, text="", bg=BG_COLOR, font=("Segoe UI", 8, "bold"), fg=DARK_COLOR)
         self.lbl_title_prev.pack(anchor="w", pady=(0, 2))
         self.lbl_preview_prev = tk.Label(self.frame_prev, text="", bg="#f0f0f0")
         self.lbl_preview_prev.pack(fill="x")
 
         self.frame_curr = tk.Frame(self.preview_frame, bg=BG_COLOR)
-        self.lbl_title_curr = tk.Label(self.frame_curr, text="", bg=BG_COLOR, font=("Segoe UI", 8, "bold"), fg="#ffffff")
+        self.lbl_title_curr = tk.Label(self.frame_curr, text="", bg=BG_COLOR, font=("Segoe UI", 8, "bold"), fg=DARK_COLOR)
         self.lbl_title_curr.pack(anchor="w", pady=(0, 2))
         self.lbl_preview_curr = tk.Label(self.frame_curr, text="", bg="#f0f0f0")
         self.lbl_preview_curr.pack(fill="x")
@@ -854,7 +865,7 @@ class SmartCaptureApp:
         self.btn_ocr = self.styled_btn(pad, "", self.start_ocr, DARK_COLOR, "white")
         self.btn_ocr.pack(fill="x", pady=(5, 10))
         
-        self.lbl_chat_info = tk.Label(pad, text="", bg=BG_COLOR, fg="#dddddd", justify="center", font=("Segoe UI", 9))
+        self.lbl_chat_info = tk.Label(pad, text="", bg=BG_COLOR, fg="#666666", justify="center", font=("Segoe UI", 9))
         self.lbl_chat_info.pack(fill="x", pady=(5, 2))
         self.btn_chat = self.styled_btn(pad, "", self.open_ai_chat, EDGE_BLUE, "white")
         self.btn_chat.pack(fill="x", pady=(0, 10))
@@ -900,7 +911,7 @@ class SmartCaptureApp:
         self.btn_browse_out.pack(side="right")
         
         self.lbl_sec_info = self.create_header(pad, "")
-        self.lbl_info_text = tk.Label(pad, text="", bg=BG_COLOR, justify="left", fg="#dddddd")
+        self.lbl_info_text = tk.Label(pad, text="", bg=BG_COLOR, justify="left", fg="#666666")
         self.lbl_info_text.pack(anchor="w", pady=5)
         self.lbl_link = tk.Label(pad, text="", bg=BG_COLOR, fg="blue", cursor="hand2", font=("Segoe UI", 10, "underline"))
         self.lbl_link.pack(anchor="w", pady=(0, 10))
@@ -942,6 +953,8 @@ class SmartCaptureApp:
                            value=val, bg=BG_COLOR, activebackground=BG_COLOR,
                            selectcolor="#d0e8ff", font=("Segoe UI", 9)
                            ).pack(side="left", padx=6)
+                           
+        self.privacy.setup_privacy_tab(pad)
 
 
     def setup_info_tab(self):
@@ -949,7 +962,7 @@ class SmartCaptureApp:
         pad.pack(fill="both", expand=True, padx=20, pady=20)
 
         tk.Label(pad, text="SmartCapture Pro", font=("Segoe UI", 16, "bold"), bg=BG_COLOR, fg=ACCENT_COLOR).pack(anchor="w")
-        tk.Label(pad, text="Version: v25.6 | Stand: 14.07.2026", font=("Segoe UI", 10), bg=BG_COLOR, fg=DARK_COLOR).pack(anchor="w", pady=(0, 15))
+        tk.Label(pad, text="Version: v25.7 | Stand: 14.07.2026", font=("Segoe UI", 10), bg=BG_COLOR, fg=DARK_COLOR).pack(anchor="w", pady=(0, 15))
 
         info_frame = tk.Frame(pad, bg="#f0f0f0", padx=15, pady=15)
         info_frame.pack(fill="x", pady=10)
@@ -1186,6 +1199,9 @@ class SmartCaptureApp:
 
         if hasattr(self, 'lbl_trans_lang'):
             self.lbl_trans_lang.config(text=self.t("lbl_trans_lang"))
+            
+        if hasattr(self, "privacy"):
+            self.privacy.refresh_privacy_ui()
 
     def update_session_file_count(self):
         if hasattr(self, 'chk_auto_files'):
@@ -1430,6 +1446,10 @@ class SmartCaptureApp:
         label.photo = photo
 
     def start_recording(self):
+    
+        if not self.privacy.show_consent_reminder():
+            return   # Nutzer hat Aufnahme abgebrochen
+    
         if not self.area_locked or self.monitor_area['width'] < 10:
             messagebox.showwarning(self.t("err_title"), self.t("err_not_locked"))
             return
