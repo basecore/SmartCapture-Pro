@@ -70,7 +70,12 @@ from natsort import natsorted
 # --- TESSERACT AUTO-INSTALLER ---
 # --- TESSERACT AUTO-INSTALLER ---
 
-from privacy_module import PrivacyManager
+try:
+    from privacy_module import PrivacyManager
+except ImportError:
+    PrivacyManager = None
+    print("[WARNUNG / WARNING] privacy_module.py nicht gefunden.")
+    print("[WARNUNG / WARNING] Privacy features are disabled.")
 
     
 def ensure_tesseract_installed():
@@ -593,7 +598,7 @@ class SmartCaptureApp:
         self.notebook = ttk.Notebook(root)
         self.notebook.pack(fill="both", expand=True)
         
-        self.privacy = PrivacyManager(self)
+        self.privacy = PrivacyManager(self) if PrivacyManager else None
         
         # TABS INITIALIZATION
         self.tab_rec = tk.Frame(self.notebook, bg=BG_COLOR)
@@ -621,7 +626,8 @@ class SmartCaptureApp:
         self.update_session_file_count()
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         
-        self.privacy.check_scheduled_deletions()
+        if self.privacy:
+            self.privacy.check_scheduled_deletions()
 
     # --- SETUP TABS ---
     def load_config(self):
@@ -954,7 +960,8 @@ class SmartCaptureApp:
                            selectcolor="#d0e8ff", font=("Segoe UI", 9)
                            ).pack(side="left", padx=6)
                            
-        self.privacy.setup_privacy_tab(pad)
+        if self.privacy:
+            self.privacy.setup_privacy_tab(pad)
 
 
     def setup_info_tab(self):
@@ -1200,7 +1207,7 @@ class SmartCaptureApp:
         if hasattr(self, 'lbl_trans_lang'):
             self.lbl_trans_lang.config(text=self.t("lbl_trans_lang"))
             
-        if hasattr(self, "privacy"):
+        if self.privacy:
             self.privacy.refresh_privacy_ui()
 
     def update_session_file_count(self):
@@ -1447,7 +1454,7 @@ class SmartCaptureApp:
 
     def start_recording(self):
     
-        if not self.privacy.show_consent_reminder():
+        if self.privacy and not self.privacy.show_consent_reminder():
             return   # Nutzer hat Aufnahme abgebrochen
     
         if not self.area_locked or self.monitor_area['width'] < 10:
