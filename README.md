@@ -149,7 +149,7 @@ The privacy module adds the following capabilities to SmartCapture Pro:
 1. Download the files into the **same folder**:
    - [`SmartCapture_Pro_257_2026-07-14.py`](https://github.com/basecore/SmartCapture-Pro/blob/main/SmartCapture_Pro_257_2026-07-14.py)
    - [`SmartCapture_Pro_257_Start.bat`](https://github.com/basecore/SmartCapture-Pro/blob/main/SmartCapture_Pro_257_Start.bat)
-   - `privacy_module.py`
+   - [`privacy_module.py`](https://github.com/basecore/SmartCapture-Pro/blob/main/privacy_module.py)
 2. **Double-click `SmartCapture_Pro_257_Start.bat`** — done!
 
 The `.bat` file checks for Python, installs all required libraries automatically, and launches the tool. On first run, Tesseract OCR is downloaded and installed silently in the background.
