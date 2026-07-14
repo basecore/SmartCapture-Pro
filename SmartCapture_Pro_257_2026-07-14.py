@@ -1305,11 +1305,24 @@ class SmartCaptureApp:
             
             self.window_hwnd = root_hwnd
             self.var_win_title.set(detected_title)
-            
+
             if detected_title != "Desktop / Unbekannt":
                 clean_title = detected_title
-                if " | " in clean_title: clean_title = clean_title.split(" | ")[0].strip()
-                elif " - " in clean_title: clean_title = clean_title.split(" - ")[0].strip()
+            
+                if " | " in clean_title:
+                    parts = [p.strip() for p in clean_title.split(" | ") if p.strip()]
+                    filtered = [p for p in parts if "@" not in p and p.lower() != "microsoft teams"]
+            
+                    if len(filtered) >= 2:
+                        clean_title = " | ".join(filtered[:2])
+                    elif filtered:
+                        clean_title = filtered[0]
+                    else:
+                        clean_title = parts[0] if parts else clean_title
+            
+                elif " - " in clean_title:
+                    clean_title = clean_title.split(" - ")[0].strip()
+            
                 self.var_title.set(clean_title)
                 self.update_ai_prompt_text()
 
