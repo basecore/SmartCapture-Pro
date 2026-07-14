@@ -1,9 +1,9 @@
 @echo off
-title SmartCapture Pro v25.6 - Launcher
+title SmartCapture Pro v25.7 - Launcher
 color 0A
 
 echo ========================================================
-echo   SmartCapture Pro v25.6 - Startvorgang / Startup
+echo   SmartCapture Pro v25.7 - Startvorgang / Startup
 echo   Datum / Date: 14.07.2026
 echo ========================================================
 echo.
@@ -47,17 +47,29 @@ echo [INFO] DE: Setze Arbeitsverzeichnis...
 echo [INFO] EN: Setting working directory...
 cd /d "%~dp0"
 
+if not exist "%~dp0privacy_module.py" (
+    echo ========================================================
+    echo [WARNUNG / WARNING]
+    echo privacy_module.py wurde nicht gefunden.
+    echo Bitte lege 'privacy_module.py' in denselben Ordner wie die Hauptdatei.
+    echo.
+    echo privacy_module.py was not found.
+    echo Please place 'privacy_module.py' in the same folder as the main file.
+    echo ========================================================
+    echo.
+)
+
 echo [INFO] DE: Pruefe und installiere Python-Bibliotheken...
 echo [INFO] EN: Checking and installing Python libraries...
 py -m pip install pytesseract Pillow natsort mss pywin32 --disable-pip-version-check
 
 echo.
-echo [START] DE: Starte SmartCapture Pro v25.6...
-echo [START] EN: Starting SmartCapture Pro v25.6...
+echo [START] DE: Starte SmartCapture Pro v25.7...
+echo [START] EN: Starting SmartCapture Pro v25.7...
 echo.
 
-:: Startet das Hauptskript v25.6
-py "SmartCapture_Pro_256_2026-07-14.py"
+:: Startet das Hauptskript v25.7
+py "SmartCapture_Pro_257_2026-07-14.py"
 
 if %ERRORLEVEL% NEQ 0 (
     color 0C
