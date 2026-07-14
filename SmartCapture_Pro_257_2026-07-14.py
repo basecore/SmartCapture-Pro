@@ -567,7 +567,7 @@ class SmartCaptureApp:
         self.var_ocr_file = tk.BooleanVar(value=True)
         self.var_preproc = tk.StringVar(value="scale2x")
         self.var_psm = tk.StringVar(value="block")
-        self.var_max_chars = tk.IntVar(value=150000)
+        self.var_max_chars = tk.IntVar(value=140000)
 
         # Context Vars
         self.var_job = tk.StringVar(value="Software Developer")
