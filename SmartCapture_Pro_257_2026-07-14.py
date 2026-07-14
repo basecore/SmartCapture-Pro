@@ -1473,31 +1473,40 @@ class SmartCaptureApp:
         if not self.area_locked or self.monitor_area['width'] < 10:
             messagebox.showwarning(self.t("err_title"), self.t("err_not_locked"))
             return
+    
         base_out_d = self.var_out_dir.get()
-        if not os.path.exists(base_out_d): os.makedirs(base_out_d)
+        if not os.path.exists(base_out_d):
+            os.makedirs(base_out_d)
+    
         self.recording_start_dt = datetime.datetime.now()
-        
+    
         date_part = self.recording_start_dt.strftime("%Y-%m-%d")
-        time_part = self.recording_start_dt.strftime("%H-%M")
+        start_part = self.recording_start_dt.strftime("%H-%M")
         title_part = self._title_slug(max_len=60)
-        
-        folder_name = f"{date_part}_{time_part}_{title_part}" if title_part else f"{date_part}_{time_part}"
-        out_d = os.path.join(base_out_d, folder_name)
-        os.makedirs(out_d, exist_ok=True)
-        self._session_out_d = out_d
-        
+    
+        day_folder = f"{date_part}_{title_part}" if title_part else date_part
+        day_out_d = os.path.join(base_out_d, day_folder)
+        os.makedirs(day_out_d, exist_ok=True)
+    
+        session_folder = f"{date_part}_{start_part}_{title_part}" if title_part else f"{date_part}_{start_part}"
+        session_out_d = os.path.join(day_out_d, session_folder)
+        os.makedirs(session_out_d, exist_ok=True)
+    
+        self._day_out_d = day_out_d
+        self._session_out_d = session_out_d
+    
         self.is_recording = True
         self.btn_start.config(state="disabled", bg="#cccccc")
         self.btn_stop.config(state="normal", bg="#d9534f")
         self.lbl_status.config(text=self.t("status_rec"), fg="red")
-        
+    
         self.img_counter = 0
         self.last_img = None
         self.show_preview(self.lbl_preview_prev, None)
         self.show_preview(self.lbl_preview_curr, None)
-        
+    
         self.record_loop()
-
+        
     def stop_recording(self):
         self.is_recording = False
         self.btn_start.config(state="normal", bg=ACCENT_COLOR)
@@ -1653,17 +1662,25 @@ class SmartCaptureApp:
             rec_start_str = self.recording_start_dt.strftime("%Y-%m-%d_%H-%M-%S")
         else:
             rec_start_str = now_str
-        export_dir = self._session_out_d
+        export_dir = getattr(self, "_day_out_d", None)
         if not export_dir:
             manual_title = self._title_slug(max_len=60)
             manual_date = now_str[:10]
             folder_name = f"{manual_date}_{manual_title}" if manual_title else manual_date
             export_dir = os.path.join(self.var_out_dir.get(), folder_name)
             os.makedirs(export_dir, exist_ok=True)
-        if slug:
-            fname = os.path.join(export_dir, f"Export_{slug}_Start-{rec_start_str}_{now_str}.txt")
+        end_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+        
+        date_part = self.recording_start_dt.strftime("%Y-%m-%d") if self.recording_start_dt else now_str[:10]
+        start_part = self.recording_start_dt.strftime("%H-%M") if self.recording_start_dt else now_str[11:16]
+        end_part = datetime.datetime.now().strftime("%H-%M")
+        title_part = self._title_slug(max_len=60)
+        
+        if title_part:
+            part_fname = os.path.join(export_dir, f"{date_part}_{start_part}_{end_part}_{title_part}_Teil{part}.txt")
         else:
-            fname = os.path.join(export_dir, f"Export_{rec_start_str}_{now_str}.txt")
+            part_fname = os.path.join(export_dir, f"{date_part}_{start_part}_{end_part}_Teil{part}.txt")
+            
         max_chars = self.var_max_chars.get()
         if max_chars > 0 and len(full_text) > max_chars:
             created_files = []
