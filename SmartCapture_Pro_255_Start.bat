@@ -58,7 +58,7 @@ echo [START] EN: Starting SmartCapture Pro v25.5...
 echo.
 
 :: Startet das Hauptskript v25.5
-py "SmartCapture_Pro_255_2026-06-18.py"
+py "SmartCapture_Pro.py"
 
 if %ERRORLEVEL% NEQ 0 (
     color 0C
