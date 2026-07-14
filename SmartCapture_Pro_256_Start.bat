@@ -1,10 +1,10 @@
 @echo off
-title SmartCapture Pro v25.5 - Launcher
+title SmartCapture Pro v25.6 - Launcher
 color 0A
 
 echo ========================================================
-echo   SmartCapture Pro v25.5 - Startvorgang / Startup
-echo   Datum / Date: 18.06.2026
+echo   SmartCapture Pro v25.6 - Startvorgang / Startup
+echo   Datum / Date: 14.07.2026
 echo ========================================================
 echo.
 echo [INFO] DE: Hinweis zur Texterkennung (OCR):
@@ -19,12 +19,11 @@ echo            proven open-source software provided by the University
 echo            of Mannheim.
 echo            If not present, it will be installed silently.
 echo.
-echo [NEU v25.5 / NEW v25.5]:
-echo   - Screenshots: Dateiname enthaelt jetzt den Meeting-Titel
-echo     Bsp: screen_Projekt_Update_2026-06-18_09-30-00.png
-echo   - Export-TXT: Dateiname enthaelt Titel + Aufnahme-Beginn
-echo     Bsp: Export_Projekt_Update_Beginn-2026-06-18_09-30_..._..txt
-echo   - Export-TXT: Kopfzeile zeigt Meeting-Titel und Aufnahme-Beginn
+echo [NEU v25.6 / NEW v25.6]:
+echo   - Session-Ordner pro Aufnahme mit Datum + Meeting-Titel
+echo     Bsp: captured_screens\2026-07-14_Project_Update_Q2\
+echo   - Screenshots und Export-TXT werden gemeinsam im Session-Ordner gespeichert
+echo   - Manueller OCR-Import kann den Meeting-Titel aus Bildnamen ableiten
 echo.
 
 :: --- PYTHON PRUEFUNG ---
@@ -53,12 +52,12 @@ echo [INFO] EN: Checking and installing Python libraries...
 py -m pip install pytesseract Pillow natsort mss pywin32 --disable-pip-version-check
 
 echo.
-echo [START] DE: Starte SmartCapture Pro v25.5...
-echo [START] EN: Starting SmartCapture Pro v25.5...
+echo [START] DE: Starte SmartCapture Pro v25.6...
+echo [START] EN: Starting SmartCapture Pro v25.6...
 echo.
 
-:: Startet das Hauptskript v25.5
-py "SmartCapture_Pro.py"
+:: Startet das Hauptskript v25.6
+py "SmartCapture_Pro_256_2026-07-14.py"
 
 if %ERRORLEVEL% NEQ 0 (
     color 0C
