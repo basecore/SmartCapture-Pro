@@ -51,6 +51,8 @@ The workflow is:
 - **Live preview** — side-by-side view of the previous and current screenshot in the UI
 - **Smart filenames** — screenshots are automatically named with the meeting title and timestamp:
   `screen_ProjectUpdate_2026-06-18_09-30-00.png`
+- **Session folders** — each recording session is saved into its own folder using date and meeting title:
+  `captured_screens/2026-07-14_Project_Update_Q2/`
 
 ### 📝 OCR & Text Export
 - **Tesseract OCR** integration — automatic installation on first run, no admin rights required
@@ -66,6 +68,7 @@ The workflow is:
   Export Created: 2026-06-18_09-45-00 | Settings: eng, --psm 6, scale2x
   ```
 - **Session file tracking** — automatically uses images from the current recording session for OCR; session can be cleared or images deleted with one click
+- **Manual OCR title detection** — if you select image files manually, SmartCapture Pro can derive the meeting title from the first filename and reuse it for the AI context and export naming
 
 ### 🤖 AI Context & Prompt Generator
 - **Context fields** — enter your job title, company, department, and meeting title to provide the AI with relevant context
@@ -96,9 +99,9 @@ The workflow is:
 ### Easiest Method — Double-click to run
 
 1. Download both files into the **same folder**:
-   - [`SmartCapture_Pro_255_2026-06-18.py`](https://github.com/basecore/SmartCapture-Pro/blob/main/SmartCapture_Pro_255_2026-06-18.py)
-   - [`SmartCapture_Pro_255_Start.bat`](https://github.com/basecore/SmartCapture-Pro/blob/main/SmartCapture_Pro_255_Start.bat)
-2. **Double-click `SmartCapture_Pro_255_Start.bat`** — done!
+   - [`SmartCapture_Pro_256_2026-07-14.py`](https://github.com/basecore/SmartCapture-Pro/blob/main/SmartCapture_Pro_256_2026-07-14.py)
+   - [`SmartCapture_Pro_256_Start.bat`](https://github.com/basecore/SmartCapture-Pro/blob/main/SmartCapture_Pro_256_Start.bat)
+2. **Double-click `SmartCapture_Pro_256_Start.bat`** — done!
 
 The `.bat` file checks for Python, installs all required libraries automatically, and launches the tool. On first run, Tesseract OCR is downloaded and installed silently in the background.
 
@@ -119,7 +122,7 @@ The `.bat` file checks for Python, installs all required libraries automatically
 ```bash
 git clone https://github.com/basecore/SmartCapture-Pro.git
 cd SmartCapture-Pro
-py SmartCapture_Pro_255_2026-06-18.py
+py SmartCapture_Pro_256_2026-07-14.py
 ```
 
 ---
@@ -127,7 +130,7 @@ py SmartCapture_Pro_255_2026-06-18.py
 ## 🛠️ How to Use
 
 ### Step 1 — Set the Meeting Title
-Open the **🤖 AI Context** tab. The tool **automatically detects and updates the meeting title** from the captured screen region as the recording runs — no manual input required for typical Teams meetings. You can also set or override the title manually in the **"Meeting Title"** field (e.g. `Project Update Q2`). The title is used in export filenames and embedded in the AI prompt for better context.
+Open the **🤖 AI Context** tab. The tool can automatically detect and update the meeting title from the captured screen region while the recording runs. You can also set or override the title manually in the **"Meeting Title"** field (e.g. `Project Update Q2`). The title is used in screenshot names, session folder names, export filenames, and embedded in the AI prompt for better context.
 
 - Optional: also fill in Job Title, Company, and Department to further enrich the AI prompt
 
@@ -143,13 +146,15 @@ Open the **🤖 AI Context** tab. The tool **automatically detects and updates t
 - The live preview shows the previous and current screenshot side by side
 - Click **"⏹ STOP"** to end the session
 
-> Screenshots are saved to your output folder immediately, named with the meeting title and timestamp.
+> Screenshots are saved to your output folder immediately, grouped in a dedicated session folder with date and meeting title.
 
 ### Step 4 — Run OCR & Export
 1. Go to the **📝 OCR & Export** tab
 2. Select OCR language, image optimization mode, and layout mode
 3. Click **"Start OCR & Export"**
 4. A `.txt` file is generated locally and opened automatically
+
+If no current session images are used and you manually select screenshots instead, the tool can parse the first selected image filename and automatically restore the meeting title into the AI Context tab.
 
 ### Step 5 — (Optional) Send to AI for Cleanup
 1. Click **"🌐 Open AI Chat & Copy Text"**
@@ -165,10 +170,11 @@ Open the **🤖 AI Context** tab. The tool **automatically detects and updates t
 
 ```
 captured_screens/
-├── screen_ProjectUpdate_2026-06-18_09-30-00.png
-├── screen_ProjectUpdate_2026-06-18_09-30-05.png
-├── screen_ProjectUpdate_2026-06-18_09-30-10.png
-└── Export_ProjectUpdate_Start-2026-06-18_09-30-00_2026-06-18_09-45-00.txt
+└── 2026-07-14_ProjectUpdate_Q2/
+    ├── screen_ProjectUpdate_Q2_2026-07-14_09-30-00.png
+    ├── screen_ProjectUpdate_Q2_2026-07-14_09-30-05.png
+    ├── screen_ProjectUpdate_Q2_2026-07-14_09-30-10.png
+    └── Export_ProjectUpdate_Q2_Start-2026-07-14_09-30-00_2026-07-14_09-45-00.txt
 ```
 
 The export `.txt` contains:
@@ -179,6 +185,13 @@ The export `.txt` contains:
 ---
 
 ## 🆕 Changelog
+
+### v25.6 — 2026-07-14
+- 📁 **Session folders per recording** — each recording now creates its own output folder in the format `YYYY-MM-DD_MeetingTitle`
+- 🖼️ **Screenshots and exports stored together** — all images and export files of a recording session are grouped inside the same session folder
+- 🏷️ **Manual OCR filename title extraction** — when selecting screenshots manually for OCR, the tool can derive the meeting title from the first filename and populate the AI Context tab automatically
+- 🔁 **Consistent session folder usage** — recording, export, folder opening, and session cleanup now all use the same tracked session directory
+- 🧱 **Fullbase release** — v256 is based on the full original codebase with all methods intact
 
 ### v25.5 — 2026-06-18
 - 🛡️ **Fixed: `GetWindowRect` crash** — `(1400, 'GetWindowRect', 'Invalid window handle')` error eliminated. A new `_safe_get_window_rect()` helper validates the window handle with `IsWindow()` before calling the Win32 API. Invalid handles (e.g. after Teams reloads or the window is closed) are now silently skipped — no more terminal error spam.
