@@ -1475,15 +1475,18 @@ class SmartCaptureApp:
             return
         base_out_d = self.var_out_dir.get()
         if not os.path.exists(base_out_d): os.makedirs(base_out_d)
-        date_part = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.recording_start_dt = datetime.datetime.now()
+        
+        date_part = self.recording_start_dt.strftime("%Y-%m-%d")
+        time_part = self.recording_start_dt.strftime("%H-%M")
         title_part = self._title_slug(max_len=60)
-        folder_name = f"{date_part}_{title_part}" if title_part else date_part
+        
+        folder_name = f"{date_part}_{time_part}_{title_part}" if title_part else f"{date_part}_{time_part}"
         out_d = os.path.join(base_out_d, folder_name)
         os.makedirs(out_d, exist_ok=True)
         self._session_out_d = out_d
         
         self.is_recording = True
-        self.recording_start_dt = datetime.datetime.now()   # Beginn der Aufzeichnung
         self.btn_start.config(state="disabled", bg="#cccccc")
         self.btn_stop.config(state="normal", bg="#d9534f")
         self.lbl_status.config(text=self.t("status_rec"), fg="red")
