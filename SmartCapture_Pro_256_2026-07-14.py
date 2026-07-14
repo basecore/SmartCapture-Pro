@@ -165,7 +165,7 @@ TRANSPARENT_KEY = "#ff00ff"
 
 # VERSION INFO
 TOOL_NAME = "SmartCapture Pro"
-TOOL_VER = "v25.5 | Stand: 18.06.2026"
+TOOL_VER = "v25.6 | Stand: 14.07.2026"
 
 # --- AI CHAT SETTINGS (change defaults here) ---
 AI_CHAT_URL = "https://chatgpt.com/"  # e.g. https://gemini.google.com or https://claude.ai
@@ -949,7 +949,7 @@ class SmartCaptureApp:
         pad.pack(fill="both", expand=True, padx=20, pady=20)
 
         tk.Label(pad, text="SmartCapture Pro", font=("Segoe UI", 16, "bold"), bg=BG_COLOR, fg=ACCENT_COLOR).pack(anchor="w")
-        tk.Label(pad, text="Version: v25.5 | Stand: 18.06.2026", font=("Segoe UI", 10), bg=BG_COLOR, fg=DARK_COLOR).pack(anchor="w", pady=(0, 15))
+        tk.Label(pad, text="Version: v25.6 | Stand: 14.07.2026", font=("Segoe UI", 10), bg=BG_COLOR, fg=DARK_COLOR).pack(anchor="w", pady=(0, 15))
 
         info_frame = tk.Frame(pad, bg="#f0f0f0", padx=15, pady=15)
         info_frame.pack(fill="x", pady=10)
