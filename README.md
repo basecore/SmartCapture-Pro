@@ -32,22 +32,22 @@ The workflow is:
 
 ## 🛡️ Privacy Module / GDPR Layer
 
-Starting with **v25.7**, SmartCapture Pro includes an integrated **privacy module** to raise the data protection standard of transcript capture workflows and make retention and transparency easier to manage in practice. The module was added because transcript-related workflows in meetings require not only technical safeguards, but also clear participant information, controlled retention periods, and an explicit privacy-by-design approach. [cite:11][cite:12][cite:16]
+Starting with **v25.7**, SmartCapture Pro includes an integrated **privacy module** to raise the data protection standard of transcript capture workflows and make retention and transparency easier to manage in practice. The module was added because transcript-related workflows in meetings require not only technical safeguards, but also clear participant information, controlled retention periods, and an explicit privacy-by-design approach. 
 
 The implementation is based on three practical principles:
-1. **Transparency before capture** — users can display a meeting-ready privacy notice before recording starts. [cite:12]
-2. **Data minimization and retention control** — screenshots and transcript text files can be deleted automatically after configurable retention periods. [cite:12][cite:16]
-3. **Respect for participant choice** — Microsoft Teams allows users to hide their identity in captions and transcripts by disabling automatic identification in the accessibility settings. [cite:11]
+1. **Transparency before capture** — users can display a meeting-ready privacy notice before recording starts. 
+2. **Data minimization and retention control** — screenshots and transcript text files can be deleted automatically after configurable retention periods. 
+3. **Respect for participant choice** — Microsoft Teams allows users to hide their identity in captions and transcripts by disabling automatic identification in the accessibility settings. 
 
-This does **not** replace legal review for a specific company or use case. It is a practical support layer for internal documentation workflows and privacy-conscious operation. [cite:12][cite:16]
+This does **not** replace legal review for a specific company or use case. It is a practical support layer for internal documentation workflows and privacy-conscious operation. 
 
 ### Why this was added
 
-In many organizations, teams want the efficiency benefits of transcript-based note-taking, action-item extraction, and internal documentation, but they also need stronger safeguards around storage duration, participant notice, and local-only processing. The privacy module was introduced to close exactly that gap in SmartCapture Pro. [cite:12][cite:16]
+In many organizations, teams want the efficiency benefits of transcript-based note-taking, action-item extraction, and internal documentation, but they also need stronger safeguards around storage duration, participant notice, and local-only processing. The privacy module was introduced to close exactly that gap in SmartCapture Pro. 
 
-The broader background is that meeting transcription can be discussed in practice under **legitimate interest** in certain internal business contexts, provided transparency, balancing of interests, and safeguards are in place. The article you referenced discusses this specifically for Microsoft Teams transcription, and public commentary also points to the BayLDA 2025 report as recognizing Article 6(1)(f) GDPR as a possible legal basis in appropriate constellations. [cite:12][cite:16]
+The broader background is that meeting transcription can be discussed in practice under **legitimate interest** in certain internal business contexts, provided transparency, balancing of interests, and safeguards are in place. The article you referenced discusses this specifically for Microsoft Teams transcription, and public commentary also points to the BayLDA 2025 report as recognizing Article 6(1)(f) GDPR as a possible legal basis in appropriate constellations. 
 
-At the same time, Microsoft Teams itself provides a built-in identity protection option: users can turn off **“Automatically identify me in live captions and live transcripts”** in **Settings → Accessibility → Captions and transcripts**. This is one reason why SmartCapture Pro now includes explicit participant notice text in German and English. [cite:11]
+At the same time, Microsoft Teams itself provides a built-in identity protection option: users can turn off **“Automatically identify me in live captions and live transcripts”** in **Settings → Accessibility → Captions and transcripts**. This is one reason why SmartCapture Pro now includes explicit participant notice text in German and English.
 
 ### What the privacy module does
 
